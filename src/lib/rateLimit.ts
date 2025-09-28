@@ -3,7 +3,6 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-
 class RateLimiter {
   private requests = new Map<string, RateLimitEntry>();
   private readonly maxRequests: number;
@@ -21,12 +20,11 @@ class RateLimiter {
     const xForwardedFor = request.headers.get("X-Forwarded-For");
     const xRealIP = request.headers.get("X-Real-IP");
 
-    const ip = (
+    const ip =
       cfConnectingIP ||
       (xForwardedFor && xForwardedFor.split(",")[0].trim()) ||
       xRealIP ||
-      null
-    );
+      null;
 
     // we want to generate a unique identifier for unknown users
     // to avoid it being used as a rate limit bypass
@@ -34,7 +32,7 @@ class RateLimiter {
       const userAgent = request.headers.get("User-Agent") || "";
       const acceptLanguage = request.headers.get("Accept-Language") || "";
       const acceptEncoding = request.headers.get("Accept-Encoding") || "";
-      
+
       const fingerprint = `${userAgent}-${acceptLanguage}-${acceptEncoding}`;
       return `unknown-${this.simpleHash(fingerprint)}`;
     }
@@ -46,7 +44,7 @@ class RateLimiter {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
@@ -60,26 +58,27 @@ class RateLimiter {
 
   private cleanupExpiredEntries(): void {
     const now = Date.now();
-    
+
     if (now - this.lastCleanup < this.cleanupInterval) {
       return;
     }
-    
+
     this.lastCleanup = now;
-    
+
     for (const [key, entry] of this.requests.entries()) {
       if (now > entry.resetTime) {
         this.requests.delete(key);
       }
     }
-    
+
     if (this.requests.size > 10000) {
-      const sortedEntries = Array.from(this.requests.entries())
-        .sort(([, a], [, b]) => a.resetTime - b.resetTime);
-      
+      const sortedEntries = Array.from(this.requests.entries()).sort(
+        ([, a], [, b]) => a.resetTime - b.resetTime
+      );
+
       const toKeep = sortedEntries.slice(-5000);
       this.requests.clear();
-      
+
       for (const [key, entry] of toKeep) {
         this.requests.set(key, entry);
       }
@@ -125,4 +124,4 @@ class RateLimiter {
   }
 }
 
-export const photoRateLimiter = new RateLimiter(5, 10 * 1000);
+export const photoRateLimiter = new RateLimiter(10, 20 * 1000);
