@@ -103,7 +103,7 @@ export const raccsController = new Elysia()
 
         if (query.json === "true") {
           const url = new URL(request.url);
-          const baseUrl = `${url.protocol}//${url.host}`;
+          const baseUrl = `https://${url.host}`;
 
           return new Response(
             JSON.stringify({
@@ -197,7 +197,7 @@ export const raccsController = new Elysia()
 
         if (query.json === "true") {
           const url = new URL(request.url);
-          const baseUrl = `${url.protocol}//${url.host}`;
+          const baseUrl = `https://${url.host}`;
 
           return new Response(
             JSON.stringify({
