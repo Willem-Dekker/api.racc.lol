@@ -8,11 +8,13 @@ RUN bun install --frozen-lockfile --production
 
 # Final image
 FROM base
-COPY --from=deps /app/node_modules ./node_modules
-COPY src ./src
-COPY package.json tsconfig.json ./
+COPY --from=deps --chown=bun:bun /app/node_modules ./node_modules
+COPY --chown=bun:bun src ./src
+COPY --chown=bun:bun package.json tsconfig.json ./
 
 ENV PORT=3000
 EXPOSE 3000
+
+USER bun
 
 CMD ["bun", "run", "src/server.ts"]
